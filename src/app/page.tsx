@@ -1,167 +1,151 @@
-"use client";
+import React from 'react';
+import { 
+  Search, 
+  UserCircle, 
+  ChevronRight,
+  Star,
+  Music2,
+  Mic2,
+  Drum,
+  Cloud
+} from 'lucide-react';
 
-import React, { useState } from 'react';
+export default function HomePage() {
+  // 검색 추천 키워드와 아이콘 매칭
+  const suggestions = [
+    { name: "재즈", icon: <Music2 size={14} /> },
+    { name: "드럼", icon: <Drum size={14} /> },
+    { name: "기타", icon: <Music2 size={14} /> },
+    { name: "몽환적인 느낌", icon: <Cloud size={14} /> }
+  ];
 
-interface Artist {
-  id: number;
-  name: string;
-  role: string;
-  genre: string;
-  status: string; // '모집중' 또는 '작업가능' 상태 추가
-  score: number;
-}
-
-export default function Home() {
-  const [query, setQuery] = useState("");
-  const [results, setResults] = useState<Artist[]>([]);
-
-  const handleSearch = () => {
-    const mockData: Artist[] = [
-      { id: 1, name: "성모", role: "작곡가", genre: "클래식/재즈", status: "프로젝트 모집중", score: 98 },
-      { id: 2, name: "김피아노", role: "피아니스트", genre: "재즈", status: "협업 가능", score: 85 },
-      { id: 3, name: "박드럼", role: "드러머", genre: "록", status: "개인 작업중", score: 72 },
-      { id: 4, name: "이지타", role: "기타리스트", genre: "블루스", status: "밴드 모집중", score: 88 },
-    ];
-    
-    const filteredResults = mockData.filter(artist => 
-      artist.name.includes(query) || artist.role.includes(query) || artist.genre.includes(query)
-    );
-    setResults(filteredResults);
-  };
+  // 아티스트 예시 데이터
+  const artists = [
+    {
+      id: 1,
+      name: "김진아",
+      role: "재즈 기타리스트",
+      vibe: "따뜻하고 부드러운 선율",
+      tags: ["Jazz", "Guitar"],
+      rating: 4.9
+    },
+    {
+      id: 2,
+      name: "정모건",
+      role: "드럼 세션 / 프로듀서",
+      vibe: "공간감 있는 사운드 디자인",
+      tags: ["Drums", "Ambient"],
+      rating: 4.8
+    },
+    {
+      id: 3,
+      name: "이하늘",
+      role: "신디사이저 작곡가",
+      vibe: "새벽녘 같은 신비로운 분위기",
+      tags: ["Dreamy", "Electronic"],
+      rating: 5.0
+    }
+  ];
 
   return (
-    <div style={{ 
-      minHeight: '100vh', 
-      backgroundColor: '#0f172a', 
-      color: '#f8fafc',
-      fontFamily: 'sans-serif',
-    }}>
-      {/* 1. 상단 메뉴바 (STO 삭제, 관심 항목 추가) */}
-      <nav style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: '20px 50px',
-        backgroundColor: 'rgba(15, 23, 42, 0.8)',
-        backdropFilter: 'blur(10px)',
-        borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-        position: 'sticky',
-        top: 0,
-        zIndex: 100
-      }}>
-        <div style={{ fontSize: '1.6rem', fontWeight: '900', color: '#38bdf8', letterSpacing: '2px' }}>CULPIC</div>
-        <ul style={{ 
-          display: 'flex', 
-          listStyle: 'none', 
-          gap: '35px', 
-          margin: 0, 
-          padding: 0,
-          fontSize: '0.95rem'
-        }}>
-          <li style={{ cursor: 'pointer', fontWeight: 'bold' }}>홈</li>
-          <li style={{ cursor: 'pointer', color: '#38bdf8' }}>파트너 매칭</li>
-          <li style={{ cursor: 'pointer' }}>프로젝트 모집</li> {/* STO 대신 추가 */}
-          <li style={{ cursor: 'pointer' }}>아티스트 라운지</li> {/* 커뮤니티 항목 */}
-          <li style={{ cursor: 'pointer' }}>마이페이지</li>
-        </ul>
+    // '쨍한' 보라 대신 차분한 슬레이트 퍼플(bg-[#0a0a0c]) 단색 배경 사용
+    <div className="min-h-screen bg-[#0a0a0c] text-slate-200 selection:bg-violet-500/30 font-sans">
+      
+      {/* 1. 심플 네비게이션 */}
+      <nav className="fixed top-0 z-50 w-full border-b border-white/5 bg-[#0a0a0c]/80 backdrop-blur-md">
+        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
+          <div className="text-xl font-bold tracking-tight text-white">
+            CUL<span className="text-violet-400">PIC</span>
+          </div>
+
+          <div className="flex items-center gap-8 text-sm font-medium text-slate-400">
+            <button className="hover:text-white transition-colors">라운지</button>
+            <button className="hover:text-white transition-colors">프로젝트</button>
+            <button className="hover:text-white transition-colors">아티스트</button>
+            <UserCircle size={22} className="text-slate-500 cursor-pointer hover:text-white transition-colors" />
+          </div>
+        </div>
       </nav>
 
-      <main style={{ padding: '100px 20px', textAlign: 'center' }}>
-        {/* 2. 대문자 강조 히어로 섹션 */}
-        <h1 style={{ fontSize: '4rem', marginBottom: '20px', fontWeight: '900' }}>
-          CREATE WITH <span style={{ color: '#38bdf8' }}>CULPIC</span>
-        </h1>
-        <p style={{ color: '#94a3b8', fontSize: '1.3rem', marginBottom: '50px', maxWidth: '700px', margin: '0 auto 50px' }}>
-          혼자서는 불가능한 음악, <br/>여기서 당신의 완벽한 파트너를 모집하고 협업을 시작하세요.
-        </p>
+      {/* 2. 검색 섹션 (직관적인 레이아웃) */}
+      <main className="mx-auto max-w-3xl px-6 pt-44 pb-20">
+        <div className="space-y-12">
+          {/* 헤드라인: 문구 최소화 */}
+          <div className="text-center space-y-3">
+            <h1 className="text-4xl font-bold tracking-tight text-white md:text-5xl">
+              어떤 파트너를 찾으시나요?
+            </h1>
+            <p className="text-slate-500 text-lg">장르, 악기, 분위기 키워드로 검색해 보세요.</p>
+          </div>
 
-        {/* 3. 검색 영역 */}
-        <div style={{ marginBottom: '80px' }}>
-          <input 
-            type="text" 
-            placeholder="찾고 있는 포지션이나 장르를 검색하세요 (예: 작곡가, 밴드 모집)" 
-            style={{ 
-              padding: '20px 35px', 
-              width: '550px', 
-              borderRadius: '50px', 
-              border: '2px solid #334155',
-              backgroundColor: '#1e293b',
-              color: 'white',
-              fontSize: '1.1rem',
-              outline: 'none'
-            }}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-          />
-          <button 
-            onClick={handleSearch}
-            style={{ 
-              padding: '20px 45px', 
-              marginLeft: '-70px',
-              borderRadius: '50px', 
-              backgroundColor: '#38bdf8', 
-              color: '#0f172a', 
-              border: 'none',
-              fontSize: '1.1rem',
-              fontWeight: 'bold',
-              cursor: 'pointer'
-            }}
-          >
-            찾기
-          </button>
-        </div>
-
-        {/* 4. 결과 카드 (모집 상태 강조) */}
-        <div style={{ 
-          maxWidth: '1100px', 
-          margin: '0 auto', 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', 
-          gap: '30px' 
-        }}>
-          {results.map(artist => (
-            <div key={artist.id} style={{ 
-              backgroundColor: '#1e293b', 
-              padding: '35px', 
-              borderRadius: '28px', 
-              border: '1px solid rgba(255, 255, 255, 0.05)',
-              textAlign: 'left'
-            }}>
-              <div style={{ 
-                display: 'inline-block',
-                padding: '5px 12px',
-                borderRadius: '8px',
-                backgroundColor: artist.status.includes('모집중') ? '#ef4444' : '#10b981',
-                fontSize: '0.75rem',
-                fontWeight: 'bold',
-                marginBottom: '15px'
-              }}>
-                {artist.status}
-              </div>
-              <h2 style={{ margin: '0 0 5px 0', fontSize: '1.7rem' }}>{artist.name}</h2>
-              <div style={{ color: '#38bdf8', marginBottom: '15px' }}>{artist.role}</div>
-              <p style={{ color: '#94a3b8', fontSize: '0.9rem', marginBottom: '25px' }}># {artist.genre} # 전문가 # 협업환영</p>
-              
-              <div style={{ 
-                display: 'flex', 
-                justifyContent: 'space-between', 
-                alignItems: 'center',
-                paddingTop: '20px',
-                borderTop: '1px solid rgba(255, 255, 255, 0.1)'
-              }}>
-                <span style={{ color: '#facc15', fontSize: '0.9rem' }}>★ 매칭률 {artist.score}%</span>
-                <button style={{ 
-                  backgroundColor: 'white', 
-                  color: '#0f172a',
-                  padding: '10px 22px', 
-                  borderRadius: '12px',
-                  cursor: 'pointer',
-                  fontWeight: 'bold',
-                  border: 'none'
-                }}>메시지 보내기</button>
+          {/* 깔끔한 검색바 */}
+          <div className="space-y-6">
+            <div className="relative group">
+              <div className="flex items-center bg-white/5 border border-white/10 rounded-2xl px-6 py-5 focus-within:border-violet-500/50 focus-within:bg-white/[0.08] transition-all">
+                <Search className="text-slate-500 mr-4" size={20} />
+                <input 
+                  type="text" 
+                  placeholder="예: 재즈, 몽환적인 느낌, 드럼..." 
+                  className="w-full bg-transparent border-none text-white placeholder-slate-600 outline-none text-lg"
+                />
               </div>
             </div>
-          ))}
+
+            {/* 추천 태그 (차분한 색감) */}
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              {suggestions.map((item) => (
+                <button 
+                  key={item.name}
+                  className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-white/5 border border-white/5 text-xs text-slate-400 hover:bg-white/10 hover:text-violet-300 transition-all"
+                >
+                  {item.icon}
+                  {item.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* 3. 검색 결과 예시 (리스트) */}
+          <div className="pt-10 space-y-6">
+            <div className="flex items-center justify-between px-2">
+              <h2 className="text-xs font-bold text-slate-500 uppercase tracking-widest">추천 아티스트</h2>
+              <div className="h-px flex-1 mx-4 bg-white/5"></div>
+            </div>
+
+            <div className="grid gap-3">
+              {artists.map((artist) => (
+                <div 
+                  key={artist.id} 
+                  className="group flex items-center justify-between p-5 rounded-2xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.05] hover:border-violet-500/30 transition-all cursor-pointer"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="h-12 w-12 rounded-xl bg-violet-500/10 flex items-center justify-center text-violet-400 font-bold border border-violet-500/20">
+                      {artist.name[0]}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <span className="font-bold text-slate-200">{artist.name}</span>
+                        <span className="text-[10px] text-slate-500 font-medium">| {artist.role}</span>
+                      </div>
+                      <p className="text-xs text-slate-500 mb-2">{artist.vibe}</p>
+                      <div className="flex gap-2">
+                        {artist.tags.map(tag => (
+                          <span key={tag} className="text-[10px] text-violet-400/80 font-medium italic">#{tag}</span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <div className="hidden sm:flex items-center gap-1 text-slate-500 group-hover:text-violet-400 transition-colors">
+                      <Star size={12} fill="currentColor" className="text-violet-500/50" />
+                      <span className="text-xs font-bold">{artist.rating}</span>
+                    </div>
+                    <ChevronRight size={18} className="text-slate-600 group-hover:text-white transition-all" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </main>
     </div>
