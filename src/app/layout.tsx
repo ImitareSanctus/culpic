@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import Header from "../components/Header"; //
+
+// 👇 기존 Header 대신 새로 만든 Navigation을 불러옵니다.
+// (파일 경로는 성모님 폴더 구조에 맞춰 ../components/Navigation 으로 잡았습니다)
+import Navigation from "../components/Navigation"; 
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -18,11 +21,12 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body className={inter.className}>
-        {/* 👇 여기에 Header를 넣습니다 */}
-        <Header />
         
-        {/* 그 다음 페이지 내용이 나옵니다 */}
+        <Navigation />
+        
+        {/* 페이지 내용 */}
         {children}
+        
       </body>
     </html>
   );
