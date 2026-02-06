@@ -1,136 +1,280 @@
-// app/projects/create/page.tsx
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { createClient } from '../../../utils/supabase/client'
-import { useRouter } from 'next/navigation'
+import { useState } from "react";
+import { Calendar, X, Hash, Link as LinkIcon, MapPin, Globe } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { createClient } from "../../../utils/supabase/client";
 
 export default function CreateProjectPage() {
-  const supabase = createClient()
-  const router = useRouter()
+  const router = useRouter();
+  const supabase = createClient();
   
-  // 6단계 입력을 위한 상태 관리
-  const [formData, setFormData] = useState({
-    title: '',
-    genre: '',
-    budget: 0,
-    requirements: ''
-  })
-  const [loading, setLoading] = useState(false)
+  // 기본 정보 상태
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
+  const [genre, setGenre] = useState("R&B / Soul");
+  const [deadLine, setDeadLine] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  // 입력 핸들러
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value })
-  }
+  // 해시태그 상태
+  const [tagInput, setTagInput] = useState("");
+  const [tags, setTags] = useState<string[]>([]);
 
-  // 프로젝트 생성 함수 (핵심 로직)
+  // 추가 기능 상태
+  const [referenceUrl, setReferenceUrl] = useState("");
+  const [workMode, setWorkMode] = useState("online");
+  const [region, setRegion] = useState("");
+  
+  // ✨ 페이 상태 기본값 변경 ('nopay' 삭제 -> 'split'을 기본으로)
+  const [payType, setPayType] = useState("split"); 
+
+  // 태그 추가
+  const handleTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && tagInput.trim() !== '') {
+      e.preventDefault();
+      if (!tags.includes(tagInput.trim())) {
+        setTags([...tags, tagInput.trim()]);
+      }
+      setTagInput("");
+    }
+  };
+
+  // 태그 삭제
+  const removeTag = (tagToRemove: string) => {
+    setTags(tags.filter(tag => tag !== tagToRemove));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
+    e.preventDefault();
+    setIsLoading(true);
 
-    // 1. 현재 로그인한 유저 확인
-    const { data: { user } } = await supabase.auth.getUser()
-    
-    if (!user) {
-      alert('로그인이 필요합니다!')
-      setLoading(false)
-      return
+    try {
+      const randomId = Math.floor(Math.random() * 1000);
+      const randomImageUrl = `https://picsum.photos/seed/${randomId}/600/600`;
+
+      // Supabase 저장
+      const { error } = await supabase
+        .from('projects')
+        .insert({
+          title: title,
+          description: content,
+          genre: genre,
+          dead_line: deadLine,
+          positions: tags,
+          image_url: randomImageUrl,
+          reference_url: referenceUrl,
+          work_mode: workMode,
+          region: workMode === 'offline' ? region : '',
+          pay_type: payType,
+        });
+
+      if (error) throw error;
+
+      alert("프로젝트가 등록되었습니다! 🚀");
+      router.push("/"); 
+      router.refresh(); 
+
+    } catch (error) {
+      console.error(error);
+      alert("저장에 실패했습니다.");
+    } finally {
+      setIsLoading(false);
     }
-
-    // 2. Supabase DB에 프로젝트 Insert
-    const { data, error } = await supabase
-      .from('projects')
-      .insert([
-        {
-          owner_id: user.id,
-          title: formData.title,
-          genre: formData.genre,
-          budget: Number(formData.budget),
-          status: 0, // 0: 모집중 (초기 상태)
-          requirements: { detail: formData.requirements } // JSON 형태로 저장
-        }
-      ])
-      .select()
-
-    if (error) {
-      console.error(error)
-      alert('프로젝트 생성 실패')
-    } else {
-      // 3. 성공 시 로그 생성 (기여도 증빙의 시작)
-      await supabase.from('work_logs').insert({
-        project_id: data[0].id,
-        user_id: user.id,
-        action_type: 'PROJECT_CREATED',
-        message: '프로젝트가 공식적으로 개설되었습니다.'
-      })
-      
-      alert('프로젝트가 개설되었습니다!')
-      router.push('/dashboard') // 대시보드로 이동
-    }
-    setLoading(false)
-  }
+  };
 
   return (
-    <div className="max-w-2xl mx-auto p-8">
-      <h1 className="text-2xl font-bold mb-6">새 프로젝트 개설 (Standard Process)</h1>
-      
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {/* 1단계: 기본 정보 */}
-        <div>
-          <label className="block text-sm font-medium mb-1">프로젝트 제목</label>
-          <input
-            name="title"
-            onChange={handleChange}
-            className="w-full p-2 border rounded"
-            placeholder="예: R&B 스타일의 기타 세션 구합니다"
-            required
-          />
-        </div>
-
-        {/* 2단계: 장르 및 스타일 */}
-        <div>
-          <label className="block text-sm font-medium mb-1">장르</label>
-          <input
-            name="genre"
-            onChange={handleChange}
-            className="w-full p-2 border rounded"
-            placeholder="예: Jazz, City Pop"
-            required
-          />
-        </div>
-
-        {/* 3단계: 예산 설정 */}
-        <div>
-          <label className="block text-sm font-medium mb-1">예산 (원)</label>
-          <input
-            name="budget"
-            type="number"
-            onChange={handleChange}
-            className="w-full p-2 border rounded"
-            placeholder="500000"
-            required
-          />
-        </div>
+    <main className="min-h-screen bg-slate-50 py-10 px-4 md:px-0">
+      <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
         
-        {/* 4단계: 상세 요건 (추후 위자드 UI로 분리 가능) */}
-        <div>
-          <label className="block text-sm font-medium mb-1">상세 모집 요건</label>
-          <textarea
-            name="requirements"
-            onChange={handleChange}
-            className="w-full p-2 border rounded h-32"
-            placeholder="구체적으로 원하는 연주 스타일이나 레퍼런스를 적어주세요."
-          />
+        {/* 헤더 */}
+        <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-white sticky top-0 z-10">
+          <h1 className="text-xl font-black text-slate-900">새 프로젝트 만들기</h1>
+          <Link href="/" className="text-slate-400 hover:text-slate-600">
+            <X className="w-6 h-6" />
+          </Link>
         </div>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-blue-600 text-white p-3 rounded hover:bg-blue-700 font-bold"
-        >
-          {loading ? '생성 중...' : '프로젝트 개설하기'}
-        </button>
-      </form>
-    </div>
-  )
+        {/* 폼 */}
+        <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-8">
+          
+          {/* 제목 */}
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-bold text-slate-700">
+              프로젝트 제목 <span className="text-red-500">*</span>
+            </label>
+            <input
+              required
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="예: 몽환적인 R&B 트랙 위에 얹을 보컬 구합니다"
+              className="w-full p-4 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium text-slate-900"
+            />
+          </div>
+
+          {/* 장르 & 마감일 */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-bold text-slate-700">장르</label>
+              <select 
+                value={genre}
+                onChange={(e) => setGenre(e.target.value)}
+                className="w-full p-3 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900"
+              >
+                <option>R&B / Soul</option>
+                <option>Hip-hop</option>
+                <option>Ballad</option>
+                <option>Rock / Band</option>
+                <option>Jazz</option>
+                <option>Electronic</option>
+              </select>
+            </div>
+            
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-bold text-slate-700">마감일</label>
+              <div className="relative">
+                <input
+                  type="date"
+                  required
+                  value={deadLine}
+                  onChange={(e) => setDeadLine(e.target.value)}
+                  className="w-full p-3 pl-10 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900"
+                />
+                <Calendar className="absolute left-3 top-3.5 w-4 h-4 text-slate-400" />
+              </div>
+            </div>
+          </div>
+
+          {/* 해시태그 입력 */}
+          <div className="flex flex-col gap-3">
+            <label className="text-sm font-bold text-slate-700">
+              무엇이 필요한가요? <span className="text-xs font-normal text-slate-400">(자유 입력 후 엔터)</span>
+            </label>
+            <div className="relative">
+              <input 
+                type="text"
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value)}
+                onKeyDown={handleTagKeyDown}
+                placeholder="예: 피아노, 첼로, 영상편집"
+                className="w-full p-4 pl-10 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium text-slate-900"
+              />
+              <Hash className="absolute left-3 top-4 w-5 h-5 text-slate-400" />
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {tags.map((tag, index) => (
+                <span 
+                  key={index} 
+                  onClick={() => removeTag(tag)}
+                  className="px-3 py-1.5 bg-slate-100 text-slate-700 text-sm font-bold rounded-full flex items-center gap-1 cursor-pointer hover:bg-red-100 hover:text-red-600 transition-colors"
+                >
+                  #{tag}
+                  <X className="w-3 h-3" />
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* 레퍼런스 링크 */}
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-bold text-slate-700">레퍼런스 링크 (선택)</label>
+            <div className="relative">
+              <input
+                type="url"
+                value={referenceUrl}
+                onChange={(e) => setReferenceUrl(e.target.value)}
+                placeholder="YouTube, SoundCloud, 데모 링크 등을 붙여넣으세요"
+                className="w-full p-4 pl-10 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium text-slate-900"
+              />
+              <LinkIcon className="absolute left-3 top-4 w-5 h-5 text-slate-400" />
+            </div>
+          </div>
+
+          {/* 작업 방식 */}
+          <div className="flex flex-col gap-3">
+            <label className="text-sm font-bold text-slate-700">작업 방식</label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setWorkMode('online')}
+                className={`p-3 rounded-xl border font-bold flex items-center justify-center gap-2 ${
+                  workMode === 'online' ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-500 border-slate-200'
+                }`}
+              >
+                <Globe className="w-4 h-4" /> 온라인
+              </button>
+              <button
+                type="button"
+                onClick={() => setWorkMode('offline')}
+                className={`p-3 rounded-xl border font-bold flex items-center justify-center gap-2 ${
+                  workMode === 'offline' ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-500 border-slate-200'
+                }`}
+              >
+                <MapPin className="w-4 h-4" /> 오프라인/대면
+              </button>
+            </div>
+            
+            {workMode === 'offline' && (
+              <input
+                required
+                type="text"
+                value={region}
+                onChange={(e) => setRegion(e.target.value)}
+                placeholder="활동 지역을 입력해주세요 (예: 서울 마포구, 부산 해운대)"
+                className="w-full p-4 rounded-xl bg-blue-50 border border-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium text-slate-900 animate-in fade-in slide-in-from-top-2"
+              />
+            )}
+          </div>
+
+          {/* ✨ 페이 / 수익 분배 (수정됨) */}
+          <div className="flex flex-col gap-3">
+            <label className="text-sm font-bold text-slate-700">페이 / 수익 분배</label>
+            <div className="grid grid-cols-2 gap-2"> 
+              {[
+                { id: 'split', label: '기여도 분배' }, // ✨ 이름 변경
+                { id: 'paid', label: '페이 지급' },
+              ].map((option) => (
+                <button
+                  key={option.id}
+                  type="button"
+                  onClick={() => setPayType(option.id)}
+                  className={`p-3 rounded-xl border text-sm font-bold transition-all ${
+                    payType === option.id 
+                      ? 'bg-green-50 border-green-500 text-green-700 ring-1 ring-green-500' 
+                      : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* 내용 */}
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-bold text-slate-700">상세 내용</label>
+            <textarea
+              rows={6}
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder="프로젝트에 대해 자유롭게 설명해주세요."
+              className="w-full p-4 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium text-slate-900 resize-none"
+            />
+          </div>
+
+          <div className="pt-4 border-t border-slate-100">
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full py-4 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold text-lg transition-all active:scale-[0.98] flex justify-center items-center gap-2"
+            >
+              {isLoading ? "등록 중..." : "프로젝트 올리기 ✨"}
+            </button>
+          </div>
+
+        </form>
+      </div>
+    </main>
+  );
 }

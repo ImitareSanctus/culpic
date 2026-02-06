@@ -38,11 +38,13 @@ export default function Header() {
             <Search className="w-5 h-5" />
           </button>
 
-          {/* 프로젝트 만들기 버튼 (핵심!) */}
-          <button className="hidden sm:flex items-center gap-2 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-full text-xs font-bold transition-all hover:scale-105 active:scale-95">
-            <PlusSquare className="w-4 h-4" />
-            <span>프로젝트 만들기</span>
-          </button>
+          <Link 
+  href="/projects/create" 
+  className="hidden sm:flex items-center gap-2 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-full text-xs font-bold transition-all hover:scale-105 active:scale-95"
+>
+  <PlusSquare className="w-4 h-4" />
+  <span>프로젝트 만들기</span>
+</Link>
 
           {/* 알림 아이콘 */}
           <button className="relative p-2 text-slate-500 hover:bg-slate-100 rounded-full transition-colors">
